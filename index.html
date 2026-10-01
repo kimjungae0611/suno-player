@@ -242,8 +242,10 @@
   // mode: "probe"(로컬 파일 확인 중) | "local"(직접 재생) | "embed"(Suno 임베드)
   let index = 0, seeking = false, repeat = false, mode = "probe", wantPlay = false;
   // 임베드는 재생이 끝났는지 알려주지 않아서, 곡 길이 + 로딩 여유 시간이 지나면 다음 곡으로 넘긴다.
-  // 임베드 페이지가 다 뜬 시점(load)부터 잰다. 느린 와이파이에서 페이지 로딩이 길어져도 곡 끝이 잘리지 않는다.
-  const EMBED_GAP = 6;
+  // 임베드 페이지가 다 뜬 시점(load)부터 잰다. 느린 와이파이에서 페이지 로딩이 길어져도 넘김 시각이 틀어지지 않는다.
+  // 임베드는 곡이 끝나면 처음부터 다시 재생하므로, 여유가 실제 재생 시작 지연(2~4초)보다 길면
+  // 이전 곡 앞부분이 몇 초 다시 들린다. 그래서 지연의 최솟값에 맞춰 곡 끝에서 바로 넘긴다.
+  const EMBED_GAP = 2;
   const EMBED_LOAD_WAIT = 20;
   const EMBED_IDLE_NOTE = "▶ 를 누르면 목록 전체가 계속 반복 재생됩니다";
   let embedTimer = null, embedEndAt = 0, embedLoaded = false;
