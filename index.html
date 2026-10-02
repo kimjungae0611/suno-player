@@ -347,10 +347,42 @@
     }
   }
 
-  function startEmbed() {
+  // 네트워크가 끊긴 채로 곡을 불러오면 그 곡 길이만큼 조용히 지나가 버린다.
+  // 그래서 Suno 서버에 닿는지 먼저 확인하고, 안 닿으면 넘기지 않고 연결될 때까지 기다린다.
+  let embedWaiting = false, embedToken = 0, retryTimer = null;
+  async function reachable() {
+    if (!navigator.onLine) return false;
+    const ctl = new AbortController();
+    const timeout = setTimeout(() => ctl.abort(), 8000);
+    try {
+      await fetch(thumbUrl(TRACKS[index].id), { mode: "no-cors", cache: "no-store", signal: ctl.signal });
+      return true;
+    } catch (e) {
+      return false;
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+  async function startEmbed() {
+    clearEmbed();
+    const token = embedToken;
+    embedWaiting = true;
+    playBtn.hidden = true;
+    frame.src = "about:blank";
+    $("embedNote").textContent = "불러오는 중…";
+    syncWake();
+    const ok = await reachable();
+    if (token !== embedToken) return;
+    if (!ok) {
+      $("embedNote").textContent = "네트워크 연결을 기다리는 중… 연결되면 자동으로 재생합니다 · ⏹ 로 정지";
+      retryTimer = setTimeout(startEmbed, 5000);
+      return;
+    }
+    embedWaiting = false;
     frame.src = embedUrl(TRACKS[index].id) + "?autoplay=1";
     watchEmbed();
   }
+  window.addEventListener("online", () => { if (embedWaiting) startEmbed(); });
   function watchEmbed() {
     clearInterval(embedTimer);
     embedEndAt = Date.now() + (TRACKS[index].duration + EMBED_GAP + EMBED_LOAD_WAIT) * 1000;
@@ -371,6 +403,8 @@
 
   frame.addEventListener("load", () => {
     if (!embedTimer || embedLoaded) return;
+    // 빈 페이지(about:blank)의 load 는 무시한다. Suno 페이지는 다른 출처라 주소를 읽으면 예외가 난다.
+    try { if (frame.contentWindow.location.href === "about:blank") return; } catch (e) {}
     embedLoaded = true;
     embedEndAt = Date.now() + (TRACKS[index].duration + EMBED_GAP) * 1000;
     embedTick();
@@ -379,7 +413,7 @@
   // 재생 중에는 태블릿 화면이 꺼지지 않게 한다 (화면이 꺼지면 재생과 곡 넘김이 멈춘다).
   let wakeLock = null, wakeWanted = false;
   async function syncWake() {
-    wakeWanted = !!embedTimer || (mode === "local" && !audio.paused);
+    wakeWanted = !!embedTimer || embedWaiting || (mode === "local" && !audio.paused);
     if (!("wakeLock" in navigator)) return;
     try {
       if (wakeWanted && !wakeLock && document.visibilityState === "visible") {
@@ -398,6 +432,9 @@
   function clearEmbed() {
     clearInterval(embedTimer);
     embedTimer = null;
+    clearTimeout(retryTimer);
+    embedWaiting = false;
+    embedToken++;
     playBtn.hidden = false;
     $("embedNote").textContent = EMBED_IDLE_NOTE;
   }
@@ -494,7 +531,7 @@
     if (!$("exitScreen").hidden) return;
     if (e.target.tagName === "INPUT" || e.target.tagName === "BUTTON") return;
     if (mode === "embed") {
-      if (e.code === "Space") { e.preventDefault(); embedTimer ? stop() : startEmbed(); }
+      if (e.code === "Space") { e.preventDefault(); embedTimer || embedWaiting ? stop() : startEmbed(); }
       return;
     }
     if (mode !== "local") return;
