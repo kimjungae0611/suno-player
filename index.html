@@ -50,8 +50,27 @@
   @media (max-height: 820px) {
     .cover { aspect-ratio: auto; height: 30vh; }
   }
+  .top { display: flex; align-items: center; gap: 8px; margin: 0 0 16px; }
+  .top-spacer, .top .exit { flex: 0 0 36px; width: 36px; height: 36px; font-size: 15px; }
+  .exit-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 24px;
+    text-align: center;
+    background: var(--bg);
+  }
+  .exit-screen p { margin: 0; color: var(--muted); font-size: 14px; }
+  .exit-screen .playlist { flex: none; font-size: 22px; }
+  .exit-screen button { width: auto; padding: 0 24px; margin-top: 12px; font-size: 15px; }
   .playlist {
-    margin: 0 0 16px;
+    flex: 1;
+    margin: 0;
     text-align: center;
     color: var(--accent);
     font-family: "Nanum Myeongjo", "Batang", "AppleMyungjo", serif;
@@ -170,7 +189,11 @@
 </head>
 <body>
 <main class="player">
-  <p class="playlist">에스텔의 고독에 기대어</p>
+  <header class="top">
+    <span class="top-spacer" aria-hidden="true"></span>
+    <p class="playlist">에스텔의 고독에 기대어</p>
+    <button id="exitBtn" class="exit" type="button" title="종료" aria-label="종료">✕</button>
+  </header>
   <img id="cover" class="cover" alt="앨범 커버">
   <h1 id="title" class="title"></h1>
   <p id="sub" class="sub"></p>
@@ -203,6 +226,12 @@
   <p id="status" class="status" role="status"></p>
   <p id="hint" class="hint">스페이스: 재생/일시정지 · ←/→: 5초 이동</p>
 </main>
+
+<div id="exitScreen" class="exit-screen" hidden>
+  <p class="playlist">에스텔의 고독에 기대어</p>
+  <p>재생을 종료했습니다. 이 창은 닫으셔도 됩니다.</p>
+  <button id="reopenBtn" type="button">다시 듣기</button>
+</div>
 
 <audio id="audio" preload="metadata"></audio>
 
@@ -405,6 +434,17 @@
   $("stopBtn").addEventListener("click", stop);
   $("prevBtn").addEventListener("click", () => load(index - 1, true));
   $("nextBtn").addEventListener("click", () => load(index + 1, true));
+  // 종료: 음악을 완전히 멈추고 창을 닫는다. 브라우저가 창 닫기를 막으면 종료 화면을 보여 준다.
+  $("exitBtn").addEventListener("click", () => {
+    stop();
+    if (mode === "embed") frame.src = "about:blank";
+    $("exitScreen").hidden = false;
+    window.close();
+  });
+  $("reopenBtn").addEventListener("click", () => {
+    $("exitScreen").hidden = true;
+    load(index, false);
+  });
   repeatBtn.addEventListener("click", () => {
     repeat = !repeat;
     repeatBtn.setAttribute("aria-pressed", String(repeat));
@@ -449,6 +489,7 @@
   vol.addEventListener("input", () => { audio.volume = Number(vol.value); });
 
   document.addEventListener("keydown", (e) => {
+    if (!$("exitScreen").hidden) return;
     if (e.target.tagName === "INPUT" || e.target.tagName === "BUTTON") return;
     if (mode === "embed") {
       if (e.code === "Space") { e.preventDefault(); embedTimer ? stop() : startEmbed(); }
