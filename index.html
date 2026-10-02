@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#2a1d16">
 <meta name="mobile-web-app-capable" content="yes">
-<title>따뜻한 카페 시간 플레이어</title>
+<title>에스텔의 고독에 기대어</title>
 <style>
   :root {
     --bg: #2a1d16;
@@ -49,6 +49,15 @@
   /* 가로로 눕힌 태블릿처럼 세로가 짧은 화면에서는 커버를 줄여 버튼이 한 화면에 들어오게 한다. */
   @media (max-height: 820px) {
     .cover { aspect-ratio: auto; height: 30vh; }
+  }
+  .playlist {
+    margin: 0 0 16px;
+    text-align: center;
+    color: var(--accent);
+    font-family: "Nanum Myeongjo", "Batang", "AppleMyungjo", serif;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: .04em;
   }
   .title { margin: 20px 0 4px; font-size: 22px; font-weight: 700; }
   .sub { margin: 0; color: var(--muted); font-size: 14px; }
@@ -161,6 +170,7 @@
 </head>
 <body>
 <main class="player">
+  <p class="playlist">에스텔의 고독에 기대어</p>
   <img id="cover" class="cover" alt="앨범 커버">
   <h1 id="title" class="title"></h1>
   <p id="sub" class="sub"></p>
