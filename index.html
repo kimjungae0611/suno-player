@@ -50,8 +50,15 @@
   @media (max-height: 820px) {
     .cover { aspect-ratio: auto; height: 30vh; }
   }
-  .top { display: flex; align-items: center; gap: 8px; margin: 0 0 16px; }
-  .top-spacer, .top .exit { flex: 0 0 36px; width: 36px; height: 36px; font-size: 15px; }
+  .exit {
+    display: flex;
+    width: fit-content;
+    height: 44px;
+    margin: 16px auto 0;
+    padding: 0 24px;
+    font-size: 15px;
+    font-weight: 600;
+  }
   .exit-screen {
     position: fixed;
     inset: 0;
@@ -66,17 +73,14 @@
     background: var(--bg);
   }
   .exit-screen p { margin: 0; color: var(--muted); font-size: 14px; }
-  .exit-screen .playlist { flex: none; font-size: 22px; }
+  .exit-screen .playlist { margin: 0; }
   .exit-screen button { width: auto; padding: 0 24px; margin-top: 12px; font-size: 15px; }
   .playlist {
-    flex: 1;
-    margin: 0;
+    margin: 0 0 16px;
     text-align: center;
     color: var(--accent);
-    font-family: "Nanum Myeongjo", "Batang", "AppleMyungjo", serif;
-    font-size: 18px;
+    font-size: 22px;
     font-weight: 700;
-    letter-spacing: .04em;
   }
   .title { margin: 20px 0 4px; font-size: 22px; font-weight: 700; }
   .sub { margin: 0; color: var(--muted); font-size: 14px; }
@@ -189,11 +193,7 @@
 </head>
 <body>
 <main class="player">
-  <header class="top">
-    <span class="top-spacer" aria-hidden="true"></span>
-    <p class="playlist">에스텔의 고독에 기대어</p>
-    <button id="exitBtn" class="exit" type="button" title="종료" aria-label="종료">✕</button>
-  </header>
+  <p class="playlist">에스텔의 고독에 기대어</p>
   <img id="cover" class="cover" alt="앨범 커버">
   <h1 id="title" class="title"></h1>
   <p id="sub" class="sub"></p>
@@ -221,6 +221,8 @@
     <span aria-hidden="true">🔊</span>
     <input id="vol" type="range" min="0" max="1" step="0.01" value="0.8" aria-label="음량">
   </div>
+
+  <button id="exitBtn" class="exit" type="button">프로그램 종료</button>
 
   <ul id="list" class="list"></ul>
   <p id="status" class="status" role="status"></p>
